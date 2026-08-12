@@ -34,6 +34,14 @@ export const configTool: GroupedToolDefinition = {
       data: {
         description: "Config data: { smtpHost?: string, smtpPort?: number, smtpUser?: string, smtpPassword?: string, smtpFrom?: string, smtpSecure?: boolean }",
         requiredFor: ["update"],
+        properties: {
+          smtpHost: { type: "string", description: "SMTP host" },
+          smtpPort: { type: "number", description: "SMTP port" },
+          smtpUser: { type: "string", description: "SMTP username" },
+          smtpPassword: { type: "string", description: "SMTP password" },
+          smtpFrom: { type: "string", description: "SMTP from address" },
+          smtpSecure: { type: "boolean", description: "Use secure SMTP (TLS)" },
+        },
       },
     }
   ),
@@ -111,8 +119,16 @@ export const usersTool: GroupedToolDefinition = {
         requiredFor: ["update", "delete", "updateEmail", "updatePassword", "updateUsername", "updateAvatar", "createApiKey"],
       },
       data: {
-        description: "User data: { email?: string, password?: string, name?: string, username?: string, role?: 'admin'|'user', isDeactivated?: boolean }",
+        description: "User data: { email: string (required for create), password: string (required for create), name: string (required for create), role?: 'admin'|'projectOwner'|'boardUser', username?: string, isDeactivated?: boolean }",
         requiredFor: ["create", "update", "updateEmail", "updatePassword", "updateUsername"],
+        properties: {
+          email: { type: "string", description: "User email", required: true },
+          password: { type: "string", description: "User password (create/updatePassword)", required: true },
+          name: { type: "string", description: "Display name", required: true },
+          username: { type: "string", description: "Username" },
+          role: { type: "string", enum: ["admin", "projectOwner", "boardUser"], description: "User role", required: true },
+          isDeactivated: { type: "boolean", description: "Whether the user is deactivated" },
+        },
       },
     }
   ),
@@ -160,8 +176,15 @@ export const webhooksTool: GroupedToolDefinition = {
         requiredFor: ["update", "delete"],
       },
       data: {
-        description: "Webhook data: { url: string, events?: string[], isActive?: boolean }",
+        description: "Webhook data: { name: string (required), url: string (required), accessToken?: string, events?: string[], excludedEvents?: string[] }",
         requiredFor: ["create", "update"],
+        properties: {
+          name: { type: "string", description: "Webhook name", required: true },
+          url: { type: "string", description: "Webhook URL", required: true },
+          accessToken: { type: "string", description: "Access token for authenticated webhooks" },
+          events: { type: "array", description: "Event types to subscribe to" },
+          excludedEvents: { type: "array", description: "Event types to exclude" },
+        },
       },
     }
   ),
@@ -199,6 +222,9 @@ export const projectManagersTool: GroupedToolDefinition = {
       data: {
         description: "Manager data: { userId: string }",
         requiredFor: ["add"],
+        properties: {
+          userId: { type: "string", description: "User ID to add as project manager", required: true },
+        },
       },
     }
   ),

@@ -36,6 +36,16 @@ export interface GroupedToolDefinition {
 }
 
 /**
+ * JSON Schema property definition for a `data` field
+ */
+export interface DataProperty {
+  type: "string" | "number" | "boolean" | "object" | "array";
+  description?: string;
+  enum?: (string | number)[];
+  required?: boolean;
+}
+
+/**
  * Tool category for filtering
  */
 export type ToolCategory = "core" | "admin" | "optional";
@@ -48,7 +58,11 @@ export function buildGroupedSchema(
   actionDescriptions: Record<string, string>,
   params?: {
     id?: { description: string; requiredFor?: string[] };
-    data?: { description: string; requiredFor?: string[] };
+    data?: {
+      description: string;
+      requiredFor?: string[];
+      properties?: Record<string, DataProperty>;
+    };
     query?: Record<string, { type: string; description: string }>;
     extra?: Record<string, any>;
   }
@@ -69,11 +83,30 @@ export function buildGroupedSchema(
   }
 
   if (params?.data) {
-    properties.data = {
+    const dataSchema: Record<string, any> = {
       type: "object",
       description: params.data.description + (params.data.requiredFor ? ` (required for: ${params.data.requiredFor.join(", ")})` : ""),
       additionalProperties: true,
     };
+    if (params.data.properties) {
+      const dataProps: Record<string, any> = {};
+      const required: string[] = [];
+      for (const [fieldName, fieldDef] of Object.entries(params.data.properties)) {
+        const propSchema: Record<string, any> = { type: fieldDef.type, description: fieldDef.description ?? "" };
+        if (fieldDef.enum) {
+          propSchema.enum = fieldDef.enum;
+        }
+        dataProps[fieldName] = propSchema;
+        if (fieldDef.required) {
+          required.push(fieldName);
+        }
+      }
+      dataSchema.properties = dataProps;
+      if (required.length > 0) {
+        dataSchema.required = required;
+      }
+    }
+    properties.data = dataSchema;
   }
 
   if (params?.query) {

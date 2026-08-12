@@ -113,8 +113,15 @@ export const projectsTool: GroupedToolDefinition = {
         requiredFor: ["get", "update", "delete"],
       },
       data: {
-        description: "Project data: { name: string, description?: string, backgroundType?: 'gradient'|'image', backgroundGradient?: string }",
+        description: "Project data: { name: string, type: 'private'|'shared' (required), description?: string, backgroundType?: 'gradient'|'image', backgroundGradient?: string }",
         requiredFor: ["create", "update"],
+        properties: {
+          name: { type: "string", description: "Project name", required: true },
+          type: { type: "string", enum: ["private", "shared"], description: "Project visibility type", required: true },
+          description: { type: "string", description: "Project description" },
+          backgroundType: { type: "string", enum: ["gradient", "image"], description: "Background type" },
+          backgroundGradient: { type: "string", description: "Background gradient value" },
+        },
       },
     }
   ),
@@ -164,6 +171,12 @@ export const boardsTool: GroupedToolDefinition = {
       data: {
         description: "Board data: { name: string, projectId?: string (for create), position?: number, defaultView?: 'kanban'|'grid'|'list' }",
         requiredFor: ["create", "update"],
+        properties: {
+          name: { type: "string", description: "Board name", required: true },
+          projectId: { type: "string", description: "Project ID (for create)" },
+          position: { type: "number", description: "Board position" },
+          defaultView: { type: "string", enum: ["kanban", "grid", "list"], description: "Default board view" },
+        },
       },
     }
   ),
@@ -211,8 +224,14 @@ export const listsTool: GroupedToolDefinition = {
         requiredFor: ["get", "update", "delete"],
       },
       data: {
-        description: "List data: { name: string, boardId?: string (for create), position?: number, type?: 'active'|'closed' }",
+        description: "List data: { name: string, boardId?: string (for create), position: number (required), type: 'active'|'closed' (required) }",
         requiredFor: ["create", "update"],
+        properties: {
+          name: { type: "string", description: "List name", required: true },
+          boardId: { type: "string", description: "Board ID (for create)" },
+          position: { type: "number", description: "List position", required: true },
+          type: { type: "string", enum: ["active", "closed"], description: "List type", required: true },
+        },
       },
     }
   ),
@@ -266,8 +285,18 @@ export const cardsTool: GroupedToolDefinition = {
         requiredFor: ["list", "get", "update", "delete"],
       },
       data: {
-        description: "Card data: { name: string, type?: 'project'|'story', listId?: string (for create/move), description?: string, dueDate?: string, isDueCompleted?: boolean, position?: number, stopwatch?: { startedAt: string, total: number } }",
+        description: "Card data: { name: string, type: 'project'|'story' (required), listId?: string (for create/move), description?: string, dueDate?: string, isDueCompleted?: boolean, position?: number, stopwatch?: { startedAt: string, total: number } }",
         requiredFor: ["create", "update"],
+        properties: {
+          name: { type: "string", description: "Card name", required: true },
+          type: { type: "string", enum: ["project", "story"], description: "Card type", required: true },
+          listId: { type: "string", description: "List ID (for create/move)" },
+          description: { type: "string", description: "Card description" },
+          dueDate: { type: "string", description: "Due date (ISO 8601)" },
+          isDueCompleted: { type: "boolean", description: "Whether the due date is completed" },
+          position: { type: "number", description: "Card position" },
+          stopwatch: { type: "object", description: "Stopwatch: { startedAt: string, total: number }" },
+        },
       },
       query: {
         search: { type: "string", description: "Search term to filter cards" },
@@ -310,6 +339,9 @@ export const commentsTool: GroupedToolDefinition = {
       data: {
         description: "Comment data: { text: string }",
         requiredFor: ["create"],
+        properties: {
+          text: { type: "string", description: "Comment text", required: true },
+        },
       },
       query: {
         beforeId: { type: "string", description: "Get comments before this ID (pagination)" },
@@ -360,8 +392,16 @@ export const tasksTool: GroupedToolDefinition = {
         requiredFor: ["getList", "createList", "create", "update"],
       },
       data: {
-        description: "Data: { name: string, cardId?: string (for createList), taskListId?: string (for create), isCompleted?: boolean (for update), assigneeUserId?: string }",
+        description: "Data: { name: string, cardId?: string (for createList), taskListId?: string (for create), position: number (required for create/createList), isCompleted?: boolean (for update), assigneeUserId?: string }",
         requiredFor: ["createList", "create", "update"],
+        properties: {
+          name: { type: "string", description: "Task list/task name", required: true },
+          cardId: { type: "string", description: "Card ID (for createList)" },
+          taskListId: { type: "string", description: "Task list ID (for create)" },
+          position: { type: "number", description: "Position (required for createList and create)", required: true },
+          isCompleted: { type: "boolean", description: "Task completion status (for update)" },
+          assigneeUserId: { type: "string", description: "Assigned user ID" },
+        },
       },
     }
   ),
@@ -415,8 +455,15 @@ export const labelsTool: GroupedToolDefinition = {
         requiredFor: ["create", "update", "delete", "addToCard", "removeFromCard"],
       },
       data: {
-        description: "Label data: { name?: string, color: string, position: number } for create/update, { labelId: string } for addToCard/removeFromCard. Colors: muddy-grey, autumn-leafs, morning-sky, antique-blue, egg-yellow, desert-sand, dark-granite, fresh-salad, lagoon-blue, midnight-blue, light-orange, pumpkin-orange, light-concrete, sunny-grass, navy-blue, lilac-eyes, apricot-red, orange-peel, silver-glint, bright-moss, deep-ocean, summer-sky, berry-red, light-cocoa, grey-stone, tank-green, coral-green, sugar-plum, pink-tulip, shady-rust, wet-rock, wet-moss, turquoise-sea, lavender-fields, piggy-red, light-mud, gun-metal, modern-green, french-coast, sweet-lilac, red-burgundy, pirate-gold",
+        description: "Label data: { name?: string, color: string (required), position: number (required) } for create/update, { labelId: string } for addToCard/removeFromCard. Colors: muddy-grey, autumn-leafs, morning-sky, antique-blue, egg-yellow, desert-sand, dark-granite, fresh-salad, lagoon-blue, midnight-blue, light-orange, pumpkin-orange, light-concrete, sunny-grass, navy-blue, lilac-eyes, apricot-red, orange-peel, silver-glint, bright-moss, deep-ocean, summer-sky, berry-red, light-cocoa, grey-stone, tank-green, coral-green, sugar-plum, pink-tulip, shady-rust, wet-rock, wet-moss, turquoise-sea, lavender-fields, piggy-red, light-mud, gun-metal, modern-green, french-coast, sweet-lilac, red-burgundy, pirate-gold",
         requiredFor: ["create", "update", "addToCard", "removeFromCard"],
+        properties: {
+          name: { type: "string", description: "Label name" },
+          color: { type: "string", description: "Label color (one of the listed colors)", required: true },
+          position: { type: "number", description: "Label position", required: true },
+          labelId: { type: "string", description: "Label ID (for addToCard/removeFromCard)" },
+          cardId: { type: "string", description: "Card ID (for addToCard/removeFromCard)" },
+        },
       },
     }
   ),
@@ -454,6 +501,9 @@ export const cardMembersTool: GroupedToolDefinition = {
       data: {
         description: "Membership data: { userId: string }",
         requiredFor: ["add", "remove"],
+        properties: {
+          userId: { type: "string", description: "User ID to assign/remove", required: true },
+        },
       },
     }
   ),

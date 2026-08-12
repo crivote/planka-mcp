@@ -74,6 +74,11 @@ export const attachmentsTool: GroupedToolDefinition = {
       data: {
         description: "Attachment data: { type: 'file'|'link', name?: string, url?: string (for link) }",
         requiredFor: ["create", "update"],
+        properties: {
+          type: { type: "string", enum: ["file", "link"], description: "Attachment type", required: true },
+          name: { type: "string", description: "Attachment name" },
+          url: { type: "string", description: "URL (for link attachments)" },
+        },
       },
     }
   ),
@@ -117,6 +122,11 @@ export const boardMembersTool: GroupedToolDefinition = {
       data: {
         description: "Membership data: { userId: string, role: 'editor'|'viewer', canComment?: boolean }",
         requiredFor: ["add", "update"],
+        properties: {
+          userId: { type: "string", description: "User ID", required: true },
+          role: { type: "string", enum: ["editor", "viewer"], description: "Membership role", required: true },
+          canComment: { type: "boolean", description: "Whether member can comment" },
+        },
       },
     }
   ),
@@ -228,8 +238,17 @@ export const customFieldsTool: GroupedToolDefinition = {
         requiredFor: ["createBaseGroup", "updateBaseGroup", "deleteBaseGroup", "createBoardGroup", "createCardGroup", "getGroup", "updateGroup", "deleteGroup", "createFieldInBase", "createField", "updateField", "deleteField", "setValue", "clearValue"],
       },
       data: {
-        description: "Field/group data: { name?: string, position?: number, content?: string (for setValue), customFieldGroupId?: string, customFieldId?: string }",
-        requiredFor: ["createBaseGroup", "updateBaseGroup", "createBoardGroup", "createCardGroup", "updateGroup", "createFieldInBase", "createField", "updateField", "setValue"],
+          description: "Field/group data: { name?: string, position?: number (required for create on groups/fields), content?: string (for setValue), customFieldGroupId?: string, customFieldId?: string, baseCustomFieldGroupId?: string, showOnFrontOfCard?: boolean }",
+          requiredFor: ["createBaseGroup", "updateBaseGroup", "createBoardGroup", "createCardGroup", "updateGroup", "createFieldInBase", "createField", "updateField", "setValue"],
+          properties: {
+              name: { type: "string", description: "Group/field name", required: true },
+              position: { type: "number", description: "Position (required when creating groups/fields)", required: true },
+              content: { type: "string", description: "Field value (for setValue)" },
+              customFieldGroupId: { type: "string", description: "Group ID" },
+              customFieldId: { type: "string", description: "Field ID" },
+              baseCustomFieldGroupId: { type: "string", description: "Base group ID (for createFieldInBase)" },
+              showOnFrontOfCard: { type: "boolean", description: "Show field value on front of card" },
+          },
       },
     }
   ),
@@ -313,8 +332,13 @@ export const notificationsTool: GroupedToolDefinition = {
         requiredFor: ["get", "markRead", "markCardRead", "createUserService", "createBoardService", "updateService", "deleteService", "testService"],
       },
       data: {
-        description: "Service data: { url: string, format: 'text'|'markdown'|'html', isRead?: boolean }",
-        requiredFor: ["markRead", "createUserService", "createBoardService", "updateService"],
+          description: "Service data: { url: string, format: 'text'|'markdown'|'html', isRead?: boolean }",
+          requiredFor: ["markRead", "createUserService", "createBoardService", "updateService"],
+          properties: {
+              url: { type: "string", description: "Notification service URL", required: true },
+              format: { type: "string", enum: ["text", "markdown", "html"], description: "Message format", required: true },
+              isRead: { type: "boolean", description: "Mark notification as read (for markRead)" },
+          },
       },
     }
   ),
@@ -350,8 +374,11 @@ export const backgroundImagesTool: GroupedToolDefinition = {
         requiredFor: ["upload", "delete"],
       },
       data: {
-        description: "Image data (for upload)",
+        description: "Image data (for upload) - multipart form: { file: binary }",
         requiredFor: ["upload"],
+        properties: {
+          file: { type: "string", description: "Image file content (binary)" },
+        },
       },
     }
   ),
@@ -381,7 +408,10 @@ export const cardExtrasTool: GroupedToolDefinition = {
         requiredFor: ["duplicate"],
       },
       data: {
-        description: "Duplicate options: { position?: number }",
+          description: "Duplicate options: { position?: number }",
+          properties: {
+              position: { type: "number", description: "Position for the duplicated card" },
+          },
       },
     }
   ),
@@ -417,8 +447,11 @@ export const commentExtrasTool: GroupedToolDefinition = {
         requiredFor: ["update", "delete"],
       },
       data: {
-        description: "Comment data: { text: string }",
-        requiredFor: ["update"],
+          description: "Comment data: { text: string }",
+          requiredFor: ["update"],
+          properties: {
+              text: { type: "string", description: "Comment text", required: true },
+          },
       },
     }
   ),
@@ -460,8 +493,13 @@ export const listExtrasTool: GroupedToolDefinition = {
         requiredFor: ["clear", "moveCards", "sort"],
       },
       data: {
-        description: "Options: { listId?: string (target for moveCards), fieldName?: 'name'|'dueDate'|'createdAt' (for sort), order?: 'asc'|'desc' (for sort) }",
-        requiredFor: ["moveCards", "sort"],
+          description: "Options: { listId?: string (target for moveCards), fieldName?: 'name'|'dueDate'|'createdAt' (for sort), order?: 'asc'|'desc' (for sort) }",
+          requiredFor: ["moveCards", "sort"],
+          properties: {
+              listId: { type: "string", description: "Target list ID (for moveCards)" },
+              fieldName: { type: "string", enum: ["name", "dueDate", "createdAt"], description: "Sort field (for sort)" },
+              order: { type: "string", enum: ["asc", "desc"], description: "Sort order (for sort)" },
+          },
       },
     }
   ),
@@ -503,8 +541,12 @@ export const taskExtrasTool: GroupedToolDefinition = {
         requiredFor: ["updateList", "deleteList", "deleteTask"],
       },
       data: {
-        description: "Task list data: { name?: string, position?: number }",
-        requiredFor: ["updateList"],
+          description: "Task list data: { name?: string, position?: number }",
+          requiredFor: ["updateList"],
+          properties: {
+              name: { type: "string", description: "Task list name" },
+              position: { type: "number", description: "Task list position" },
+          },
       },
     }
   ),
@@ -546,8 +588,15 @@ export const labelExtrasTool: GroupedToolDefinition = {
         requiredFor: ["update", "delete", "removeFromCard"],
       },
       data: {
-        description: "Label data: { name?: string, color?: string, position?: number } for update; { labelId: string, cardId: string } for removeFromCard",
-        requiredFor: ["update", "removeFromCard"],
+          description: "Label data: { name?: string, color?: string, position?: number } for update; { labelId: string, cardId: string } for removeFromCard",
+          requiredFor: ["update", "removeFromCard"],
+          properties: {
+              name: { type: "string", description: "Label name" },
+              color: { type: "string", description: "Label color" },
+              position: { type: "number", description: "Label position" },
+              labelId: { type: "string", description: "Label ID (for removeFromCard)", required: true },
+              cardId: { type: "string", description: "Card ID (for removeFromCard)", required: true },
+          },
       },
     }
   ),
@@ -579,6 +628,10 @@ export const cardMemberExtrasTool: GroupedToolDefinition = {
       data: {
         description: "Membership data: { userId: string, cardId: string }",
         requiredFor: ["remove"],
+        properties: {
+          userId: { type: "string", description: "User ID to remove", required: true },
+          cardId: { type: "string", description: "Card ID", required: true },
+        },
       },
     }
   ),

@@ -214,5 +214,57 @@ describe("Tool Definitions", () => {
         `Unexpected clearValue path: ${customFieldsTool!.operations.clearValue.path}`
       );
     });
+
+    it("should declare required data fields (properties.required) for create endpoints", () => {
+      const swagger = JSON.parse(readFileSync(resolve(process.cwd(), "swagger.json"), "utf8"));
+
+      // Mapa de (tool, action) -> ruta del endpoint de create
+      const createRoutes: Record<string, string> = {
+        "projects.create": "/projects",
+        "boards.create": "/projects/{projectId}/boards",
+        "lists.create": "/boards/{boardId}/lists",
+        "cards.create": "/lists/{listId}/cards",
+        "comments.create": "/cards/{cardId}/comments",
+        "tasks.createList": "/cards/{cardId}/task-lists",
+        "tasks.create": "/task-lists/{taskListId}/tasks",
+        "labels.create": "/boards/{boardId}/labels",
+        "cardMembers.add": "/cards/{cardId}/card-memberships",
+        "users.create": "/users",
+        "webhooks.create": "/webhooks",
+        "customFields.createBoardGroup": "/boards/{boardId}/custom-field-groups",
+        "customFields.createCardGroup": "/cards/{cardId}/custom-field-groups",
+        "customFields.createFieldInBase": "/base-custom-field-groups/{baseCustomFieldGroupId}/custom-fields",
+        "customFields.createField": "/custom-field-groups/{customFieldGroupId}/custom-fields",
+        "notifications.createUserService": "/users/{userId}/notification-services",
+        "notifications.createBoardService": "/boards/{boardId}/notification-services",
+        "boardMembers.add": "/boards/{boardId}/board-memberships",
+        "projectManagers.add": "/projects/{projectId}/project-managers",
+      };
+
+      for (const [key, route] of Object.entries(createRoutes)) {
+        const [toolName, action] = key.split(".");
+        const tool = allTools.find(t => t.name === toolName);
+        assert.ok(tool, `Tool ${toolName} should exist`);
+
+        const op = tool.operations[action];
+        assert.ok(op, `Operation ${toolName}.${action} should exist`);
+
+        // required del swagger para la ruta
+        const specOp = swagger.paths[route]?.post ?? swagger.paths[route]?.patch ?? swagger.paths[route]?.put;
+        const specRequired = specOp?.requestBody?.content?.["application/json"]?.schema?.required ?? [];
+
+        // required declarado en el schema MCP del data
+        const dataSchema = tool.inputSchema.properties.data;
+        assert.ok(dataSchema, `Tool ${toolName}.${action} should declare a data schema`);
+        const mcpRequired = dataSchema.required ?? [];
+
+        for (const field of specRequired) {
+          assert.ok(
+            mcpRequired.includes(field),
+            `${toolName}.${action} data schema should require '${field}' (swagger requires ${JSON.stringify(specRequired)})`
+          );
+        }
+      }
+    });
   });
 });
